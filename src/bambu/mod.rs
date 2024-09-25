@@ -24,10 +24,10 @@ pub async fn new(
 ) -> Result<Bambu, ClientError> {
     let mut mqttoptions = MqttOptions::new("conductor", ms, 1883);
     mqttoptions.set_keep_alive(Duration::from_secs(5));
-    let (mqtt_client, evtloop) = rumqttc::AsyncClient::new(mqttoptions, 10);
+    let (mqtt_client, evtloop) = AsyncClient::new(mqttoptions, 10);
     let (tx, rx) = tokio::sync::mpsc::channel(20);
     let (etx, err_recv) = tokio::sync::mpsc::channel(1);
-    let mqtt_recv = tokio_stream::wrappers::ReceiverStream::new(rx);
+    let mqtt_recv = ReceiverStream::new(rx);
 
     // Might aswell subscribe as a test, can always unsub later
     let err = mqtt_client

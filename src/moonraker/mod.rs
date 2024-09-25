@@ -1,4 +1,5 @@
 use std::{net::IpAddr, time::Duration};
+use reqwest::Client;
 
 pub struct Moonraker {
     client: reqwest::Client,
@@ -23,7 +24,7 @@ impl Moonraker {
     }
 
     pub fn new() -> Self {
-        let cl = reqwest::Client::builder()
+        let cl = Client::builder()
             .timeout(Duration::from_millis(100))
             .build();
 
