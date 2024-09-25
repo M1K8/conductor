@@ -4,9 +4,7 @@ use ratatui::{
         terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
         ExecutableCommand,
     },
-    layout::{Constraint, Layout},
-    widgets::Block,
-    Frame, Terminal,
+    Terminal,
 };
 use tokio;
 
@@ -20,6 +18,7 @@ use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use tokio::sync::mpsc;
 
 pub mod input;
+pub mod ui;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -41,11 +40,11 @@ async fn main() -> io::Result<()> {
             evt = rx.recv() => {
                 match evt {
                     Some(_) => break,
-                    None =>  terminal.draw(ui)?,
+                    None =>  terminal.draw(ui::ui)?,
                 };
             },
             _ = ticker.tick() => {
-                terminal.draw(ui)?;
+                terminal.draw(ui::ui)?;
             }
         }
     }
@@ -54,21 +53,4 @@ async fn main() -> io::Result<()> {
     stdout().execute(DisableMouseCapture)?;
     stdout().execute(LeaveAlternateScreen)?;
     Ok(())
-}
-
-fn ui(frame: &mut Frame) {
-    let [title_area, main_area, status_area] = Layout::vertical([
-        Constraint::Length(1),
-        Constraint::Min(0),
-        Constraint::Length(1),
-    ])
-    .areas(frame.area());
-    let [left_area, right_area] =
-        Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .areas(main_area);
-
-    frame.render_widget(Block::bordered().title("Title Bar"), title_area);
-    frame.render_widget(Block::bordered().title("Status Bar"), status_area);
-    frame.render_widget(Block::bordered().title("Left"), left_area);
-    frame.render_widget(Block::bordered().title("Right"), right_area);
 }
