@@ -1,0 +1,11 @@
+[package]
+name = "conductor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+crossterm = { version = "0.28.1", features = ["event-stream"] }
+futures = "0.3.30"
+futures-timer = "3.0.3"
+ratatui = "0.28.1"
+tokio = { version = "1.40.0", features = ["full"] }
