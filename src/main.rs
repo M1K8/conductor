@@ -1,3 +1,4 @@
+use bambu::Bambu;
 use ratatui::{
     backend::CrosstermBackend,
     crossterm::{
@@ -10,6 +11,7 @@ use tokio;
 
 use std::{
     io::{self, stdout},
+    net::Ipv4Addr,
     time::Duration,
 };
 
@@ -42,6 +44,13 @@ async fn main() -> io::Result<()> {
     stdout().execute(EnableMouseCapture)?;
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     let moon = moonraker::Moonraker::new();
+    let bbu = bambu::new(
+        std::net::IpAddr::V4(Ipv4Addr::new(10, 0, 0, 11)),
+        "ftp_user",
+        "ftp_pw",
+        "ms",
+        "bb_dev_id",
+    );
 
     let (tx, mut rx) = mpsc::channel(1);
     tokio::spawn(async move {

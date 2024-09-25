@@ -1,5 +1,5 @@
-use std::{net::IpAddr, time::Duration};
 use reqwest::Client;
+use std::{net::IpAddr, time::Duration};
 
 pub struct Moonraker {
     client: reqwest::Client,
