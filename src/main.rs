@@ -10,7 +10,6 @@ use tokio;
 
 use std::{
     io::{self, stdout},
-    net::Ipv4Addr,
     time::Duration,
 };
 
@@ -43,19 +42,8 @@ async fn main() -> io::Result<()> {
     stdout().execute(EnableMouseCapture)?;
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     let moon = moonraker::Moonraker::new();
-    let res = moon
-        .test_ping(std::net::IpAddr::V4(Ipv4Addr::new(10, 0, 2, 11)))
-        .await;
-
-    match res {
-        Ok(_) => {}
-        Err(e) => {
-            return cleanup(Some(e.to_string()));
-        }
-    }
 
     let (tx, mut rx) = mpsc::channel(1);
-
     tokio::spawn(async move {
         input::await_input(tx).await;
     });
