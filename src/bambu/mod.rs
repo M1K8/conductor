@@ -1,8 +1,10 @@
+use core::error;
 use rumqttc::{AsyncClient, ClientError, ConnectionError, Event, EventLoop, MqttOptions, QoS};
 use std::{net::IpAddr, time::Duration};
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio_stream::wrappers::ReceiverStream;
 
+use crate::commands;
 pub struct Bambu<'a> {
     ftp_srv: IpAddr,
     ftp_user: &'a str,
@@ -72,4 +74,8 @@ async fn poll_mqtt(mut evtloop: EventLoop, tx: Sender<Event>) -> Option<Connecti
         }
     }
 }
-impl<'a> Bambu<'a> {}
+impl<'a> Bambu<'a> {
+    pub fn handle(&self, cmd: &commands::Command) -> Option<Box<dyn error::Error>> {
+        None
+    }
+}

@@ -14,3 +14,6 @@ rumqttc = "0.24.0"
 tokio = { version = "1.40.0", features = ["full"] }
 tokio-tungstenite = "0.24.0"
 tokio-stream = "0.1.16"
+clap = { version = "4.5.18", features = ["derive", "env"] }
+clap_complete = "4.5.29"
+clap_complete_command = "0.6.1"
