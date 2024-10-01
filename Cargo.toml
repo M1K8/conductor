@@ -10,10 +10,14 @@ futures = "0.3.30"
 futures-timer = "3.0.3"
 ratatui = "0.28.1"
 reqwest = { version = "0.12", features = ["json"] }
-rumqttc = "0.24.0"
+
+paho-mqtt = "0.12"
+
 tokio = { version = "1.40.0", features = ["full"] }
 tokio-tungstenite = "0.24.0"
 tokio-stream = "0.1.16"
 clap = { version = "4.5.18", features = ["derive", "env"] }
 clap_complete = "4.5.29"
 clap_complete_command = "0.6.1"
+tokio-rustls = "0.25.0"
+rustls-native-certs = "0.8.0"

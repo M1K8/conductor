@@ -18,7 +18,7 @@ pub(crate) enum Mode {
     Klipper,
 }
 impl Mode {
-    pub fn validate_necessary_args(&self, c: &Cmd) -> Option<ArgError> {
+    pub fn validate_necessary_args(&self, _c: &Cmd) -> Option<ArgError> {
         None
     }
 }
@@ -33,19 +33,19 @@ pub(crate) struct Cmd {
 
     //todo - make the following opts, but unwrap at top lvl so values arent dropped
     #[arg(env("BAMBU_DEVICE"))]
-    pub bbu_dev_id: String,
+    pub bbu_dev_id: Option<String>,
 
-    #[arg(env("MQTT_SERVER"))]
-    pub mqtt_server: String,
+    #[arg(env("MQTT_SRV"))]
+    pub mqtt_server: Option<String>,
 
     #[arg(env("FTP_USER"))]
-    pub ftp_user: String,
+    pub ftp_user: Option<String>,
 
     #[arg(env("FTP_PW"))]
-    pub ftp_pw: String,
+    pub ftp_pw: Option<String>,
 
     #[arg(env("DEVICE_IP"))]
-    pub dev_ip: String,
+    pub dev_ip: Option<String>,
 }
 
 //TODO - decide when to use / how to bundle
