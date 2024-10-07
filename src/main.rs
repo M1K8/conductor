@@ -33,9 +33,11 @@ async fn main() -> io::Result<()> {
         }
     };
 
+    if cmd.mode.is_some() {}
     match &cmd.mode {
-        commands::Mode::Bambu { nested } => {
-            match &cmd.mode.validate_necessary_args(&cmd) {
+        Some(commands::Mode::Bambu { nested }) => {
+            let c = cmd.clone().mode.unwrap();
+            match c.validate_necessary_args(&cmd) {
                 None => {}
                 Some(e) => panic!("{:?}", e),
             }
@@ -82,22 +84,25 @@ async fn main() -> io::Result<()> {
             };
 
             match nested {
-                Command::Interactive => todo!(),
+                Command::Interactive => {}
                 Command::Ping => {
                     tokio::spawn(async move {
                         tokio::time::sleep(Duration::from_secs(8)).await;
                         _ = kill_tx.send(Some(())).await;
                     });
 
-                    bbu.handle(nested).await;
-                    return cleanup(None);
+                    match bbu.handle(nested).await {
+                        Some(e) => return cleanup(Some(e.to_string())),
+                        None => return cleanup(None),
+                    }
                 }
                 Command::Print => todo!(),
                 Command::Upload => todo!(),
             }
         }
-        commands::Mode::Klipper => {
-            match &cmd.mode.validate_necessary_args(&cmd) {
+        Some(commands::Mode::Klipper) => {
+            let c = cmd.clone().mode.unwrap();
+            match c.validate_necessary_args(&cmd) {
                 None => {}
                 Some(e) => {
                     _ = cleanup(Some(format!("{:?}", e)));
@@ -106,27 +111,28 @@ async fn main() -> io::Result<()> {
             }
             let _moon = moonraker::Moonraker::new();
         }
-    }
+        None => {
+            let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
 
-    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
+            let (tx, mut rx) = mpsc::channel(1);
+            tokio::spawn(async move {
+                input::await_input(tx).await;
+            });
 
-    let (tx, mut rx) = mpsc::channel(1);
-    tokio::spawn(async move {
-        input::await_input(tx).await;
-    });
+            let mut ticker = tokio::time::interval(Duration::from_millis(500));
 
-    let mut ticker = tokio::time::interval(Duration::from_millis(500));
-
-    loop {
-        tokio::select! {
-            evt = rx.recv() => {
-                match evt {
-                    Some(_) => break,
-                    None =>  terminal.draw(ui::ui)?,
-                };
-            },
-            _ = ticker.tick() => {
-                terminal.draw(ui::ui)?;
+            loop {
+                tokio::select! {
+                    evt = rx.recv() => {
+                        match evt {
+                            Some(_) => break,
+                            None =>  terminal.draw(ui::ui)?,
+                        };
+                    },
+                    _ = ticker.tick() => {
+                        terminal.draw(ui::ui)?;
+                    }
+                }
             }
         }
     }

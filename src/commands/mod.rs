@@ -12,7 +12,7 @@ pub(crate) enum Command {
     Upload,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand, Debug, Clone)]
 pub(crate) enum Mode {
     Bambu { nested: Command },
     Klipper,
@@ -23,13 +23,13 @@ impl Mode {
     }
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 #[command(version, about, long_about = None)]
 #[command(propagate_version = true)]
 pub(crate) struct Cmd {
     /// What mode to run the program in
     #[command(subcommand)]
-    pub mode: Mode,
+    pub mode: Option<Mode>,
 
     //todo - make the following opts, but unwrap at top lvl so values arent dropped
     #[arg(env("BAMBU_DEVICE"))]

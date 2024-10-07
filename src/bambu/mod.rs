@@ -1,10 +1,11 @@
 use crate::commands;
 use core::error;
 use paho_mqtt::{self as mqtt, AsyncClient, AsyncReceiver, Message};
-
+use report::Report;
 use std::{env, error::Error, time::Duration};
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
+mod report;
 pub(crate) struct Bambu<'a> {
     ftp_user: &'a str,
     ftp_pw: &'a str,
@@ -102,7 +103,6 @@ async fn poll_mqtt(
                     // If we're subbed to the main /report topic, we'll be getting enough
                     // messages to hog all of the tokio schedulers time, so add a lil yielding break
                     tokio::task::yield_now().await;
-                    //tokio::time::sleep(Duration::from_millis(5)).await;
                 }
                 Err(e) => println!("{:?}", e),
             },
@@ -113,30 +113,47 @@ async fn poll_mqtt(
     }
 }
 
+fn get_bb_report(json: String) -> Result<Report, serde_json::Error> {
+    serde_json::from_str::<Report>(&json)
+}
+
 impl<'a> Bambu<'a> {
     pub async fn handle(&mut self, _cmd: &commands::Command) -> Option<Box<dyn error::Error>> {
         loop {
-            tokio::select! {
-                evt = self.mqtt_recv.next() => {
-                    match evt {
-                        Some(v) => {
-                            let vv = v.payload_str();
-                            println!("{vv}");},
-                        None =>  {return None;},
-                    };
-                },
-                kill = self.kill_chan.recv() => {
-                    match kill {
-                        Some(_) => {
-                            self.mqtt_client.disconnect(None);
-                            return None;
+            tokio::select!(@{
+                start = {
+                    tokio::macros::support::thread_rng_n(BRANCHES)
+                };
+                ()
+            }evt = self.mqtt_recv.next() => {
+                match evt {
+                    Some(v) => {
+                        let vv = v.payload_str().to_string();
+                        match get_bb_report(vv){
+                            Ok(o) => {
+                                let str =  serde_json::to_string_pretty(&o).unwrap();
+                                println!("{str}");
+                            }
+                            Err(e) => {
+                                println!("{:?}",e);
+                                return Some(e.into());
+                            },
                         }
-                        None => {
-                            return None;
-                        }
+
+                    },None => {
+                        return None;
+                    },
+                };
+            },kill = self.kill_chan.recv() => {
+                match kill {
+                    Some(_) => {
+                        self.mqtt_client.disconnect(None);
+                        return None;
+                    }None => {
+                        return None;
                     }
                 }
-            }
+            })
         }
     }
 }
