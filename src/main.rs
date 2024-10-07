@@ -16,6 +16,7 @@ use std::{
 use tokio::sync::mpsc;
 pub mod bambu;
 pub mod commands;
+pub mod config;
 pub mod input;
 pub mod moonraker;
 pub mod ui;
@@ -91,6 +92,11 @@ async fn main() -> io::Result<()> {
                         _ = kill_tx.send(Some(())).await;
                     });
 
+                    //TODO - tie in the global input handler here (it'll probably sit under it anyway?)
+                    // so reallly TODO tie into crossterm window
+
+                    // Subcmds should also just be shortcuts - the top lvl menu should rely on /etc/conductor.conf
+                    // or smth to save state, and thus will be able to have a TUI for all configured printers
                     match bbu.handle(nested).await {
                         Some(e) => return cleanup(Some(e.to_string())),
                         None => return cleanup(None),
