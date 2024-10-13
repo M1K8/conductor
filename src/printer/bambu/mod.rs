@@ -5,6 +5,8 @@ use report::Report;
 use std::{env, error::Error, time::Duration};
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
+
+use super::Machine;
 mod report;
 pub(crate) struct Bambu<'a> {
     ftp_user: &'a str,
@@ -155,5 +157,19 @@ impl<'a> Bambu<'a> {
                 }
             })
         }
+    }
+}
+
+impl Machine for Bambu<'_> {
+    fn print(f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
+        todo!()
+    }
+
+    fn upload(f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
+        todo!()
+    }
+
+    fn get_info() -> std::collections::HashMap<String, String> {
+        todo!()
     }
 }

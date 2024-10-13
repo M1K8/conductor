@@ -13,12 +13,12 @@ use std::{
     io::{self, stdout},
     time::Duration,
 };
+
 use tokio::sync::mpsc;
-pub mod bambu;
 pub mod commands;
 pub mod config;
 pub mod input;
-pub mod moonraker;
+pub mod printer;
 pub mod ui;
 
 #[tokio::main]
@@ -76,7 +76,7 @@ async fn main() -> io::Result<()> {
 
             let (kill_tx, kill_recv) = tokio::sync::mpsc::channel(1);
 
-            let mut bbu = match bambu::new(&user, &pw, &ip, &devid, kill_recv).await {
+            let mut bbu = match printer::bambu::new(&user, &pw, &ip, &devid, kill_recv).await {
                 Ok(b) => b,
                 Err(e) => {
                     let ee = e.to_string(); //todo - error wrapping
@@ -115,7 +115,7 @@ async fn main() -> io::Result<()> {
                     panic!("{:?}", e)
                 }
             }
-            let _moon = moonraker::Moonraker::new();
+            let _moon = printer::moonraker::Moonraker::new();
         }
         None => {
             let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;

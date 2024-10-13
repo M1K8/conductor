@@ -1,6 +1,10 @@
 use reqwest::Client;
 use std::{net::IpAddr, time::Duration};
 
+use crate::config::Printer;
+
+use super::Machine;
+
 pub struct Moonraker {
     client: reqwest::Client,
 }
@@ -32,5 +36,19 @@ impl Moonraker {
             Ok(c) => Moonraker { client: c },
             Err(e) => panic!("{:?}", e),
         }
+    }
+}
+
+impl Machine for Moonraker {
+    fn print(f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
+        todo!()
+    }
+
+    fn upload(f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
+        todo!()
+    }
+
+    fn get_info() -> std::collections::HashMap<String, String> {
+        todo!()
     }
 }
