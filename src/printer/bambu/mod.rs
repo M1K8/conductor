@@ -6,7 +6,7 @@ use std::{env, error::Error, time::Duration};
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
 
-use super::Machine;
+use super::Printer;
 mod report;
 pub(crate) struct Bambu<'a> {
     ftp_user: &'a str,
@@ -160,7 +160,7 @@ impl<'a> Bambu<'a> {
     }
 }
 
-impl Machine for Bambu<'_> {
+impl Printer for Bambu<'_> {
     fn print(f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }

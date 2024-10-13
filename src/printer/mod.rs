@@ -5,7 +5,7 @@ pub mod moonraker;
 
 pub struct PrintFile {}
 
-pub trait Machine {
+pub trait Printer {
     fn print(f: &PrintFile) -> Result<(), Box<dyn std::error::Error>>;
     fn upload(f: &PrintFile) -> Result<(), Box<dyn std::error::Error>>;
 

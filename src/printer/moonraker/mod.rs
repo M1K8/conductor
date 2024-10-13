@@ -1,9 +1,7 @@
 use reqwest::Client;
 use std::{net::IpAddr, time::Duration};
 
-use crate::config::Printer;
-
-use super::Machine;
+use super::Printer;
 
 pub struct Moonraker {
     client: reqwest::Client,
@@ -39,7 +37,7 @@ impl Moonraker {
     }
 }
 
-impl Machine for Moonraker {
+impl Printer for Moonraker {
     fn print(f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
