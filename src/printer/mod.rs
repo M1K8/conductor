@@ -6,8 +6,8 @@ pub mod moonraker;
 pub struct PrintFile {}
 
 pub trait Printer {
-    fn print(f: &PrintFile) -> Result<(), Box<dyn std::error::Error>>;
-    fn upload(f: &PrintFile) -> Result<(), Box<dyn std::error::Error>>;
+    fn print(&self, f: &PrintFile) -> Result<(), Box<dyn std::error::Error>>;
+    fn upload(&self, f: &PrintFile) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn get_info() -> HashMap<String, String>;
+    fn get_info(&self) -> HashMap<String, String>;
 }

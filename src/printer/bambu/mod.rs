@@ -161,15 +161,15 @@ impl<'a> Bambu<'a> {
 }
 
 impl Printer for Bambu<'_> {
-    fn print(f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
+    fn print(&self, f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
-    fn upload(f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
+    fn upload(&self, f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
-    fn get_info() -> std::collections::HashMap<String, String> {
+    fn get_info(&self) -> std::collections::HashMap<String, String> {
         todo!()
     }
 }
