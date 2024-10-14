@@ -6,7 +6,7 @@ use std::{env, error::Error, time::Duration};
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
 
-use super::Printer;
+use super::Device;
 mod report;
 pub(crate) struct Bambu<'a> {
     ftp_user: &'a str,
@@ -115,23 +115,14 @@ async fn poll_mqtt(
     }
 }
 
-fn get_bb_report(json: String) -> Result<Report, serde_json::Error> {
-    serde_json::from_str::<Report>(&json)
-}
-
 impl<'a> Bambu<'a> {
-    pub async fn handle(&mut self, _cmd: &commands::Command) -> Option<Box<dyn error::Error>> {
+    pub async fn start_mqtt(&mut self, _cmd: &commands::Command) -> Option<Box<dyn error::Error>> {
         loop {
-            tokio::select!(@{
-                start = {
-                    tokio::macros::support::thread_rng_n(BRANCHES)
-                };
-                ()
-            }evt = self.mqtt_recv.next() => {
+            tokio::select!(evt = self.mqtt_recv.next() => {
                 match evt {
                     Some(v) => {
-                        let vv = v.payload_str().to_string();
-                        match get_bb_report(vv){
+                        let json = v.payload_str().to_string();
+                        match serde_json::from_str::<Report>(&json){
                             Ok(o) => {
                                 let str =  serde_json::to_string_pretty(&o).unwrap();
                                 println!("{str}");
@@ -160,7 +151,7 @@ impl<'a> Bambu<'a> {
     }
 }
 
-impl Printer for Bambu<'_> {
+impl Device for Bambu<'_> {
     fn print(&self, f: &super::PrintFile) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }

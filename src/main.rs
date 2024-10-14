@@ -27,6 +27,11 @@ async fn main() -> io::Result<()> {
     stdout().execute(EnterAlternateScreen)?;
     stdout().execute(EnableMouseCapture)?;
 
+    let cfg = match config::deser() {
+        Ok(c) => c,
+        Err(e) => return cleanup(Some(e.to_string())),
+    };
+
     let cmd = match commands::Cmd::try_parse() {
         Ok(cmd) => cmd,
         Err(e) => {
@@ -34,111 +39,54 @@ async fn main() -> io::Result<()> {
         }
     };
 
-    if cmd.mode.is_some() {}
     match &cmd.mode {
-        Some(commands::Mode::Bambu { nested }) => {
-            let c = cmd.clone().mode.unwrap();
-            match c.validate_necessary_args(&cmd) {
-                None => {}
-                Some(e) => panic!("{:?}", e),
-            }
-            let ip = match cmd.dev_ip {
-                Some(i) => i,
-                None => {
-                    println!("missing ip");
-                    return cleanup(None);
-                }
-            };
-
-            let user = match cmd.ftp_user {
-                Some(i) => i,
-                None => {
-                    println!("missing user");
-                    return cleanup(None);
-                }
-            };
-
-            let pw = match cmd.ftp_pw {
-                Some(i) => i,
-                None => {
-                    println!("missing pw");
-                    return cleanup(None);
-                }
-            };
-
-            let devid = match cmd.bbu_dev_id {
-                Some(i) => i,
-                None => {
-                    println!("missing dev_id");
-                    return cleanup(None);
-                }
-            };
-
-            let (kill_tx, kill_recv) = tokio::sync::mpsc::channel(1);
-
-            let mut bbu = match printer::bambu::new(&user, &pw, &ip, &devid, kill_recv).await {
-                Ok(b) => b,
-                Err(e) => {
-                    let ee = e.to_string(); //todo - error wrapping
-                    return cleanup(Some(format!("while dialing mqtt server: {ee}")));
-                }
-            };
-
-            match nested {
-                Command::Interactive => {}
-                Command::Ping => {
-                    tokio::spawn(async move {
-                        tokio::time::sleep(Duration::from_secs(8)).await;
-                        _ = kill_tx.send(Some(())).await;
-                    });
-
-                    //TODO - tie in the global input handler here (it'll probably sit under it anyway?)
-                    // so reallly TODO tie into crossterm window
-
-                    // Subcmds should also just be shortcuts - the top lvl menu should rely on /etc/conductor.conf
-                    // or smth to save state, and thus will be able to have a TUI for all configured printers
-                    match bbu.handle(nested).await {
-                        Some(e) => return cleanup(Some(e.to_string())),
-                        None => return cleanup(None),
+        Some(cmd) => match cmd {
+            Command::Interactive => {}
+            Command::Ping { printer } => {
+                let printer_cfg = match config::get_printer(&cfg, printer) {
+                    Some(p) => p,
+                    None => {
+                        return cleanup(Some(format!("printer {printer} not found").to_string()))
                     }
-                }
-                Command::Print => todo!(),
-                Command::Upload => todo!(),
+                };
             }
-        }
-        Some(commands::Mode::Klipper) => {
-            let c = cmd.clone().mode.unwrap();
-            match c.validate_necessary_args(&cmd) {
-                None => {}
-                Some(e) => {
-                    _ = cleanup(Some(format!("{:?}", e)));
-                    panic!("{:?}", e)
-                }
-            }
-            let _moon = printer::moonraker::Moonraker::new();
-        }
-        None => {
-            let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-
-            let (tx, mut rx) = mpsc::channel(1);
-            tokio::spawn(async move {
-                input::await_input(tx).await;
-            });
-
-            let mut ticker = tokio::time::interval(Duration::from_millis(500));
-
-            loop {
-                tokio::select! {
-                    evt = rx.recv() => {
-                        match evt {
-                            Some(_) => break,
-                            None =>  terminal.draw(ui::ui)?,
-                        };
-                    },
-                    _ = ticker.tick() => {
-                        terminal.draw(ui::ui)?;
+            Command::Print { printer, file } => {
+                let printer_cfg = match config::get_printer(&cfg, printer) {
+                    Some(p) => p,
+                    None => {
+                        return cleanup(Some(format!("printer {printer} not found").to_string()))
                     }
-                }
+                };
+            }
+            Command::Upload { printer, file } => {
+                let printer_cfg = match config::get_printer(&cfg, printer) {
+                    Some(p) => p,
+                    None => {
+                        return cleanup(Some(format!("printer {printer} not found").to_string()))
+                    }
+                };
+            }
+        },
+        None => {} //default to interactive
+    }
+    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
+    let (tx, mut rx) = mpsc::channel(1);
+    tokio::spawn(async move {
+        input::await_input(tx).await;
+    });
+
+    let mut ticker = tokio::time::interval(Duration::from_millis(500));
+
+    loop {
+        tokio::select! {
+            evt = rx.recv() => {
+                match evt {
+                    Some(_) => break,
+                    None =>  terminal.draw(ui::ui)?,
+                };
+            },
+            _ = ticker.tick() => {
+                terminal.draw(ui::ui)?;
             }
         }
     }
